@@ -9,7 +9,7 @@ cfg_path = '/darknet/cfg/yolov3-tiny.cfg'
 weights_path = '/opt/project/weights/yolo/yolov3-tiny.weights'
 
 # Load names of classes
-classesFile = "/darknet/cfg/coco.names";
+classesFile = "/darknet/cfg/coco.names"
 classes = None
 with open(classesFile, 'rt') as f:
     classes = f.read().rstrip('\n').split('\n')
