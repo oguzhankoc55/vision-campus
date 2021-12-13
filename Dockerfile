@@ -16,6 +16,8 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python get-pip.py --force-reinstall
 RUN rm get-pip.py
 
+RUN apt-get update && apt-get install -y python3-opencv
+
 WORKDIR /
 
 RUN git clone https://github.com/AlexeyAB/darknet.git \
