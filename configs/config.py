@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -- coding: utf-8 --
 """Model config in json format"""
 
 CFG = {
@@ -28,4 +28,14 @@ CFG = {
         },
         "output": 3
     }
+}
+
+CFG_CAMPUS={
+    "path":{
+        "weight" :"/opt/project/weights/yolo_campus/yolov3_final.weights",
+        "cfg":"/opt/project/weights/yolo_campus/yolov3.cfg",
+        "obj_name":"/opt/project/weights/yolo_campus/obj.names"
+    },
+    "network_size":(480, 480)
+
 }
