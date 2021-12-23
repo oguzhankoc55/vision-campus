@@ -1,9 +1,13 @@
 # -- coding: utf-8 --
 """Model config in json format"""
 
-CFG = {
+CFG_CAMPUS = {
     "data": {
-        "path": "oxford_iiit_pet:3.2.0",
+        "path": {
+            "weight":"/opt/project/weights/yolo_campus/yolov3_final.weights",
+            "cfg":"/opt/project/weights/yolo_campus/yolov3.cfg",
+            "obj":"/opt/project/weights/yolo_campus/obj.names"
+        },
         "image_size": 128,
         "load_with_info": True
     },
@@ -28,14 +32,4 @@ CFG = {
         },
         "output": 3
     }
-}
-
-CFG_CAMPUS={
-    "path":{
-        "weight" :"/opt/project/weights/yolo_campus/yolov3_final.weights",
-        "cfg":"/opt/project/weights/yolo_campus/yolov3.cfg",
-        "obj_name":"/opt/project/weights/yolo_campus/obj.names"
-    },
-    "network_size":(480, 480)
-
 }

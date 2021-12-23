@@ -1,16 +1,16 @@
 import os
 import traceback
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
+sys.path.append(os.path.join(os.path.dirname(file),'../'))
 from flask import Flask, jsonify, request
-from executors.cvdnn_inferrer import Campus_inferrer
+from executors.campus_inferrer import CampusInferrer
 app = Flask(__name__)
 
 APP_ROOT = os.getenv('APP_ROOT', '/infer')
 HOST = "127.0.0.1"
 PORT_NUMBER = int(os.getenv('PORT_NUMBER', 5000))
 
-c_net = Campus_inferrer()
+c_net = CampusInferrer()
 
 
 @app.route(APP_ROOT, methods=["POST"])

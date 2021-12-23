@@ -1,58 +1,85 @@
 
-
-import tensorflow as tf
-import numpy as np
+from PIL import Image
 import sys
 import os
 import cv2
+import json
 import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__),'../'))
 from utils.plot_image import display
-
 from utils.config import Config
 from configs.config import CFG_CAMPUS
 
-
-class Campus_inferrer:
+class CampusInferrer:
     def __init__(self):
-        self.config = CFG_CAMPUS
+        self.config = Config.from_json(CFG_CAMPUS)
         self.classes = None
         self.net = None
         self._layer_names=None
         self._output_layers=None
         self.image_blob=None
+        self.layer_results=None
+        self.image = np.asarray(Image.open('/opt/project/weights/yolo_campus/IMG_4381.JPG')).astype(np.float32)
 
+    """self.config.path.obj_name"""
     def Load_classes(self):
-        with open(self.config.path.obj_name, 'rt') as f:
+        obj_path =  self.config.data.path.obj #"/opt/project/weights/yolo_campus/obj.names"
+        with open(obj_path, 'rt') as f:
             self.classes = f.read().rstrip('\n').split('\n')
 
-    def def_interface_engine(self):
-        self.net = cv2.dnn.readNetFromDarknet(self.config.path.cfg, self.config.path.weight)
+    def inference_engine(self):
+        cfg_path = self.config.data.path.cfg
+        weight_path= self.config.data.path.weight
+        self.net = cv2.dnn.readNetFromDarknet(cfg_path, weight_path)
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
         self._layer_names = self.net.getLayerNames()
         self._output_layers = [self._layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
 
-    def proces(self, image=None):
-        self.image_blob = cv2.dnn.blobFromImage(image, 1 / 255.0, self.config.netwotk_size, swapRB=True, crop=False)
+    def proces(self):
+        self.image_blob = cv2.dnn.blobFromImage(self.image, 1 / 255.0, (480, 480), swapRB=True, crop=False)
         self.net.setInput(self.image_blob, "data")
-        return self.net.forward(self._output_layers)
-
-    def infer(self, image=None):
-        tensor_image = tf.convert_to_tensor(image, dtype=tf.float32)
-        tensor_image = self.proces(image)
-        shape= tensor_image.shape
-        tensor_image = tf.reshape(tensor_image, [1, shape[0], shape[1], shape[2]])
-        print(tensor_image.shape)
-        #pred = self.predict(tensor_image)['conv2d_transpose_4']
-        #display([tensor_image[0], pred[0]])
-        pred = tensor_image.numpy().tolist()
-        return {'segmentation_output':pred}
+        self.layer_results = self.net.forward(self._output_layers)
 
 
+    def final_prediction(self,img):#outputs, img, threshold, nms_threshold #layers_result, img, 0.3, 0.3)
+        height, width =  img.shape[0], img.shape[1]  # self.image.shape[0], self.image.shape[1] #
+        boxes, confs, class_ids = [], [], []
+        final_result = []
+        for output in self.layer_results:
+            for detect in output:
+                scores = detect[5:]
+                class_id = np.argmax(scores)
+                conf = scores[class_id]
+                if conf > 0.3:
+                    center_x = int(detect[0] * width)
+                    center_y = int(detect[1] * height)
+                    w = int(detect[2] * width)
+                    h = int(detect[3] * height)
+                    x = int(center_x - w / 2)
+                    y = int(center_y - h / 2)
+                    boxes.append([x, y, w, h])
+                    confs.append(float(conf))
+                    class_ids.append(class_id)
 
 
+        merge_boxes_ids = cv2.dnn.NMSBoxes(boxes, confs, 0.3, 0.3)
+        for i in merge_boxes_ids:
+            final_result.append([boxes[int(i)][0], boxes[int(i)][1], boxes[int(i)][2], boxes[int(i)][3],
+                                   confs[int(i)], np.int64(class_ids[int(i)]).item()])
+
+        final_result = json.dumps(final_result)
+        return final_result
+# tek obje json dosyası , config dosyası , postman google dan bak,utilse yeni kendin icin config yaz
+
+
+c_net = CampusInferrer()
+c_net.Load_classes()
+c_net.inference_engine()
+c_net.proces()
+image = np.asarray(Image.open('/opt/project/weights/yolo_campus/IMG_4381.JPG')).astype(np.float32)
+print(c_net.final_prediction(image))
 
 
 
